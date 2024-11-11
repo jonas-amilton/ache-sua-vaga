@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  # Serviço PHP
+  php-fpm:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - .:/var/www/html
+
+  # Serviço Nginx
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php-fpm
+
+  # Serviço de Banco de Dados MySQL
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      # usar senha e usuário em ambiente de produção
+      # MYSQL_USER: app_user
+      # MYSQL_PASSWORD: app_password
+      MYSQL_DATABASE: ache_sua_vaga_db
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # Serviço phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8082:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
